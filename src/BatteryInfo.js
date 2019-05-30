@@ -1,23 +1,46 @@
-import React, { Component } from "react";
-import { View, Text, Image, StyleSheet, StatusBar } from "react-native";
+import React, { Component, Fragment } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  StatusBar,
+  ActivityIndicator
+} from "react-native";
 import colors from "./colors";
+import { BatteryModule } from "./Modules";
 
 export default class BatteryInfo extends Component {
   constructor(props) {
     super(props);
     this.state = {
       percentage: undefined,
-      status: "Charging"
+      status: undefined
     };
   }
 
   componentDidMount() {
-    const percentage = Math.floor(Math.random() * (100 - 0) + 0);
     this.setState({
-      ...this.getImageAndColorForPercentage(percentage),
-      percentage: percentage
+      loading: true
     });
+    this.getBatteryStats();
+    this.interval = setInterval(this.getBatteryStats, 3000);
   }
+
+  getBatteryStats = () => {
+    BatteryModule.getBatteryPercentage(percentage => {
+      this.setState({
+        ...this.getImageAndColorForPercentage(percentage),
+        percentage: percentage,
+        loading: false
+      });
+    });
+    BatteryModule.getBatteryChargingStatus(status => {
+      this.setState({
+        status
+      });
+    });
+  };
 
   getImageAndColorForPercentage = percentage => {
     let image = require("./assets/battery-full2.png");
@@ -38,36 +61,48 @@ export default class BatteryInfo extends Component {
     return { image, color };
   };
 
+  componentWillUnmount() {
+    clearInterval(this.interval);
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <StatusBar backgroundColor={this.state.color} />
-        <Image
-          source={this.state.image}
-          style={{ width: 300, marginBottom : 64 }}
-          resizeMode="contain"
-        />
-        <View style={{ flexDirection: "row", margin: 12 }}>
-          <Text style={{ fontSize: 25 }}>Battery Percentage: </Text>
-          <Text
-            style={{
-              fontSize: 25,
-              color: this.state.color,
-              fontWeight: "bold"
-            }}
-          >{`${this.state.percentage}%`}</Text>
-        </View>
-        <View style={{ flexDirection: "row" }}>
-          <Text style={{ fontSize: 25 }}>Battery Status: </Text>
-          <Text
-            style={{
-              fontSize: 25,
-              fontWeight: "bold"
-            }}
-          >
-            {this.state.status}
-          </Text>
-        </View>
+        {this.state.loading ? (
+          <ActivityIndicator size={48} />
+        ) : (
+          <Fragment>
+            <Image
+              source={this.state.image}
+              style={{ width: 300, marginBottom: 64 }}
+              resizeMode="contain"
+            />
+            <View style={{ flexDirection: "row", margin: 12 }}>
+              <Text style={{ fontSize: 25 }}>Battery Percentage: </Text>
+              <Text
+                style={{
+                  fontSize: 25,
+                  color: this.state.color,
+                  fontWeight: "bold"
+                }}
+              >{`${this.state.percentage}%`}</Text>
+            </View>
+            {this.state.status && (
+              <View style={{ flexDirection: "row" }}>
+                <Text style={{ fontSize: 25 }}>Battery Status: </Text>
+                <Text
+                  style={{
+                    fontSize: 25,
+                    fontWeight: "bold"
+                  }}
+                >
+                  {this.state.status}
+                </Text>
+              </View>
+            )}
+          </Fragment>
+        )}
       </View>
     );
   }
@@ -79,5 +114,5 @@ const styles = StyleSheet.create({
     padding: 24,
     justifyContent: "center",
     alignItems: "center"
-  },
+  }
 });
