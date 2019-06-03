@@ -5,7 +5,8 @@ import {
   Image,
   StyleSheet,
   StatusBar,
-  ActivityIndicator
+  ActivityIndicator,
+  Platform
 } from "react-native";
 import colors from "./colors";
 import { BatteryModule } from "./Modules";
@@ -28,18 +29,27 @@ export default class BatteryInfo extends Component {
   }
 
   getBatteryStats = () => {
-    BatteryModule.getBatteryPercentage(percentage => {
+    if (Platform.OS === "android") {
+      BatteryModule.getBatteryPercentage(percentage => {
+        this.setState({
+          ...this.getImageAndColorForPercentage(percentage),
+          percentage: percentage,
+          loading: false
+        });
+      });
+      BatteryModule.getBatteryChargingStatus(status => {
+        this.setState({
+          status
+        });
+      });
+    } else {
+      const percentage = Math.floor(Math.random() * (100 - 0) + 0);
       this.setState({
         ...this.getImageAndColorForPercentage(percentage),
         percentage: percentage,
         loading: false
       });
-    });
-    BatteryModule.getBatteryChargingStatus(status => {
-      this.setState({
-        status
-      });
-    });
+    }
   };
 
   getImageAndColorForPercentage = percentage => {
@@ -70,7 +80,7 @@ export default class BatteryInfo extends Component {
       <View style={styles.container}>
         <StatusBar backgroundColor={this.state.color} />
         {this.state.loading ? (
-          <ActivityIndicator size={48} />
+          <ActivityIndicator size={'large'} />
         ) : (
           <Fragment>
             <Image
