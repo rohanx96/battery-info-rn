@@ -19,6 +19,7 @@ public class CustomModulesPackage implements ReactPackage {
     @Override
     public List<NativeModule> createNativeModules(@Nonnull ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
+        // Add BatteryModule to the list of native modules in this package.
         modules.add(new BatteryModule(reactContext));
         return modules;
     }
@@ -26,6 +27,7 @@ public class CustomModulesPackage implements ReactPackage {
     @Nonnull
     @Override
     public List<ViewManager> createViewManagers(@Nonnull ReactApplicationContext reactContext) {
+        // Required for modules that have UI components. Not required in our case, so we return empty list
         return Collections.emptyList();
     }
 }
